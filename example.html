@@ -1,0 +1,19 @@
+<html>
+<head>
+	<script src="jquery-1.7.2.js"> </script>
+	<script src="jquery-ui-1.8.18.custom.min.js"></script>
+	<script src="Listerator.js"></script>
+	<script>
+		$(function () {
+			$('#beerterator').Listerator();
+		});
+	</script>
+</head>
+<body>
+	Beers!
+	<div id="beerterator">
+	    <span><Label for="beername">name</Label><input listerator-display=true id="beername" name="beername" type="text" /></span>
+	    <span><Label for="beerprice">price</Label><input listerator-display=true name="beerprice" id="beerprice" type="text" /></span>
+	</div>
+</body>
+</html>
