@@ -2,14 +2,28 @@
     var methods = {
         createLine: function (options, data) {
 
-            var line = $('<div />');
+            
 
             var layout = data.layout;
-            $(layout).find('[listerator-display="true"]').each(function (i, el) {
+            var line;
 
-                var fieldname = $(el).attr('name');
-                var realfield = $(data.element.find('[name=' + fieldname + ']'));
-                $('<span />').text(realfield.val()).css('margin', '10px').appendTo(line);
+            if (options.layout == 'simple')
+                line = $('<div />');
+            else
+                line = layout.clone();
+
+            data.element.find('[listerator-display="true"]').each(function (i, el) {
+                //var fieldname = $(el).attr('name');
+                el = $(el);
+                var val = el.val();
+                console.log(val);
+                //var realfield = $(data.element.find('[name=' + fieldname + ']'));
+                if (options.layout == 'simple')
+                    $('<span />').text(val).css('margin', '10px').appendTo(line);
+                else {
+                    var span = $('<span />').html(val);
+                    line.find('[name=' + el.attr('name') + ']').replaceWith(span);
+                }
             });
 
             return line;
@@ -29,15 +43,15 @@
             var newline;
 
             if (options.template)
-                newline = methods.createLineFromTemplate();
+                //to implement
+                newline = methods.createLineFromTemplate(options, data);
 
             else if (options.create)
-                newline = opts.create();
+                //to implement
+                newline = options.create(options, data);
 
-            else {
+            else
                 newline = methods['createLine'](options, data);
-                //var line = methods['createLine'](data.lineLayout, data.lineCounter++);
-            }
 
             data.submitcontainer.append(newline);
             if (options.lineCreated)
@@ -65,12 +79,15 @@
             var container;
             var lineCounter = 0;
 
-            var wrapper = $('<div />').addClass('listerator-wrapper').appendTo(element.parent());
+            var layout = element.clone();
+
+            var wrapper = $('<div />').addClass('listerator-wrapper');
+            element.before(wrapper);
             var elementdiv = $('<div />').append(element).appendTo(wrapper);
             var plusbutton = $('<button />').text("add").button().click(methods['addLine']).appendTo(element);
             var submitcontainer = $('<div />').appendTo(wrapper);
 
-            var layout = element.clone();
+            
 
             var listeratorData = {
                 submitcontainer: submitcontainer,
