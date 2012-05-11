@@ -1,9 +1,6 @@
 ﻿(function ($) {
     var methods = {
-        createLine: function (options, data) {
-
-            
-
+        createLine: function (options, data, lineNumber) {
             var layout = data.layout;
             var line;
 
@@ -15,25 +12,37 @@
             data.element.find('[listerator-display="true"]').each(function (i, el) {
                 //var fieldname = $(el).attr('name');
                 el = $(el);
-                var val = el.val();
-                console.log(val);
                 //var realfield = $(data.element.find('[name=' + fieldname + ']'));
-                if (options.layout == 'simple')
-                    $('<span />').text(val).css('margin', '10px').appendTo(line);
+                if (options.layout == 'simple') {
+                    var span = $('<span />').text(el.val()).css('margin', '10px');
+                    span.attr('name', el.attr('name') + lineNumber);
+                    span.appendTo(line);
+                }
                 else {
-                    var span = $('<span />').html(val);
+                    var span = $('<span />').text(el.val()).attr('name', el.attr('name') + lineNumber);
                     line.find('[name=' + el.attr('name') + ']').replaceWith(span);
                 }
             });
 
+            var removebutton = $('<button />').text("remove").button().click(methods['removeClick']);
+            line.append(removebutton);
+
+            line.data('listeratorLineNum', lineNumber);
+
             return line;
+        },
 
-            /*var newline = lineLayout.attr('id', 'line' + lineCounter).clone();
-            newline.find('[name]').each(function () { this.name += lineCounter });
-            newline.find('[id]').each(function () { this.id += lineCounter });
-            newline.find('[for]').each(function () { $(this).attr('for', $(this).attr('for') + lineCounter); });
+        removeClick: function () {
+            var element = $(this).parent().parent().data('element');
+            var data = element.data('listeratorData');
+            var options = element.data('listeratorOptions');
 
-            return newline;*/
+            var line = $(this).parent().data('listeratorLineNum');
+
+            $(this).parent().remove();
+            data.lines--;
+
+            //Iterate the submit elements, correcting the names
         },
 
         addLine: function () {
@@ -51,25 +60,20 @@
                 newline = options.create(options, data);
 
             else
-                newline = methods['createLine'](options, data);
+                newline = methods['createLine'](options, data, data.lines);
 
             data.submitcontainer.append(newline);
+            data.lines++;
+
+
             if (options.lineCreated)
                 options.lineCreated(line);
 
             return false;
-        },
-
-        removeLine: function () {
-            var data = $(this).parent().data('listeratorData');
-
-            if (data.lineCounter > 0) {
-                data.container.find('#line' + --data.lineCounter).remove();
-            }
-            return false;
         }
     };
 
+    /** the element should be a non-div */
     $.fn.Listerator = function (options) {
         var defaults = {};
         var opts = $.extend(defaults, options);
@@ -87,41 +91,17 @@
             var plusbutton = $('<button />').text("add").button().click(methods['addLine']).appendTo(element);
             var submitcontainer = $('<div />').appendTo(wrapper);
 
-            
-
             var listeratorData = {
                 submitcontainer: submitcontainer,
                 layout: layout,
-                element: element
-                //lineCounter: lineCounter,
+                element: element,
+                lines: 0
             };
 
             element.data("listeratorData", listeratorData);
             element.data("listeratorOptions", opts);
 
-
-            //check if a template is given
-            /*var lineLayout = element.children(':first').clone();
-
-            container = $('<div />').appendTo(element);
-
-            //Add the first line
-            var line = methods['createLine'](lineLayout, lineCounter++);
-            container.append(line);
-            if (opts.lineCreated)
-            opts.lineCreated(line);
-
-            var listeratorData = {
-            container: container,
-            lineCounter: lineCounter,
-            lineLayout: lineLayout
-            };
-
-            element.data("listeratorData", listeratorData);
-            element.data("listeratorOptions", opts);
-
-            var add = $("<button />").html("+").button().click(methods['addLine']).appendTo(element);
-            var remove = $("<button />").html("-").button().click(methods['removeLine']).appendTo(element);*/
+            submitcontainer.data('element', element);
         });
 
         return this;
