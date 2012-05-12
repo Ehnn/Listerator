@@ -6,16 +6,25 @@
 	<script>
 		$(function () {
 			$('#beerterator').Listerator({
-				layout: 'simple'
+				template: $('#listeratorTemplate'),
+				eraseData: true
 			});
 		});
 	</script>
 </head>
 <body>
+	<form>
 	Beers!
-	<span id="beerterator">
+	<div id="beerterator">
 	    <span><Label for="beername">name</Label><input listerator-display=true id="beername" name="beername" type="text" /></span>
 	    <span><Label for="beerprice">price</Label><input listerator-display=true name="beerprice" id="beerprice" type="text" /></span>
-	</span>
+	</div>
+	<input type="submit" value="Submit"></button>
+	</form>
+
+	<div id="listeratorTemplate" style="display:none">
+		Name: <span style="width:100px;margin-right:30;margin-left:30;color:red" listerator-name="beername"></span>
+		Price: <span style="width:100px;margin-right:30;margin-left:30;color:green" listerator-name="beerprice"></span>
+	</div>
 </body>
 </html>

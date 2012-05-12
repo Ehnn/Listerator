@@ -1,35 +1,58 @@
 ﻿(function ($) {
     var methods = {
         createLine: function (options, data, lineNumber) {
-            var layout = data.layout;
-            var line;
+            var line = options.template.clone();
+            line.find('[listerator-name]').each(function (i, el) {
+                $el = $(el);
+                var name = $el.attr("listerator-name");
 
-            if (options.layout == 'simple')
-                line = $('<div />');
-            else
-                line = layout.clone();
+                //change our name
+                $el.attr('name', name + lineNumber);
 
-            data.element.find('[listerator-display="true"]').each(function (i, el) {
-                //var fieldname = $(el).attr('name');
-                el = $(el);
-                //var realfield = $(data.element.find('[name=' + fieldname + ']'));
-                if (options.layout == 'simple') {
-                    var span = $('<span />').text(el.val()).css('margin', '10px');
-                    span.attr('name', el.attr('name') + lineNumber);
-                    span.appendTo(line);
-                }
-                else {
-                    var span = $('<span />').text(el.val()).attr('name', el.attr('name') + lineNumber);
-                    line.find('[name=' + el.attr('name') + ']').replaceWith(span);
-                }
+                //retrieve the value
+                data.element.find('[name=' + name + ']').each(function (i, el2) {
+                    $el.text($(el2).val());
+                });
             });
 
-            var removebutton = $('<button />').text("remove").button().click(methods['removeClick']);
-            line.append(removebutton);
-
+            var removebutton = $('<button />').text("remove").button().click(methods['removeClick']).appendTo(line);
             line.data('listeratorLineNum', lineNumber);
 
             return line;
+        },
+
+        createTemplateFromElement: function (element, options) {
+            var template;
+            switch (options.layout) {
+                case 'copy':
+                    template = element.clone();
+                    break;
+                case 'simple':
+                default:
+                    template = $('<div />');
+                    break;
+            }
+
+            element.find('[listerator-display="true"]').each(function (i, el) {
+                $el = $(el);
+                
+                switch (options.layout) {
+                    //use the original layout, replace listerator-display with a span of its value
+                    case 'copy':
+                        var span = $('<span />').attr('listerator-name', $el.attr('name'));
+                        line.find('[name=' + $el.attr('name') + ']').replaceWith(span);
+                        break;
+                    //put the display data into spans
+                    case 'simple':
+                    default:
+                        var span = $('<span />').css('margin', '10px');
+                        span.attr('listerator-name', $el.attr('name'));
+                        span.appendTo(template);
+                        break;
+                }
+            });
+
+            return template;
         },
 
         removeClick: function () {
@@ -43,6 +66,14 @@
             data.lines--;
 
             //Iterate the submit elements, correcting the names
+
+            var i = 0;
+            data.submitcontainer.children().each(function (i, el) {
+                el.find('[name]').each(function () {
+                    //this.attr('name', this.attr('name'))
+                });
+                console.log(i, el); 
+            });
         },
 
         addLine: function () {
@@ -51,19 +82,14 @@
 
             var newline;
 
-            if (options.template)
-                //to implement
-                newline = methods.createLineFromTemplate(options, data);
-
-            else if (options.create)
-                //to implement
-                newline = options.create(options, data);
-
-            else
-                newline = methods['createLine'](options, data, data.lines);
+            newline = methods['createLine'](options, data, data.lines);
 
             data.submitcontainer.append(newline);
             data.lines++;
+
+            //erase data
+            if (options.eraseData)
+                data.element.find('[listerator-display="true"]').each(function (i, el) { $(el).val(''); });
 
 
             if (options.lineCreated)
@@ -75,13 +101,14 @@
 
     /** the element should be a non-div */
     $.fn.Listerator = function (options) {
-        var defaults = {};
-        var opts = $.extend(defaults, options);
+        var defaults = {
+            eraseData: true
+        };
+        var options = $.extend(defaults, options);
 
         this.each(function () {
             var element = $(this);
             var container;
-            var lineCounter = 0;
 
             var layout = element.clone();
 
@@ -91,6 +118,15 @@
             var plusbutton = $('<button />').text("add").button().click(methods['addLine']).appendTo(element);
             var submitcontainer = $('<div />').appendTo(wrapper);
 
+            if (options.template) {
+                options.template = $(options.template).clone();
+                if (options.template.css('display', 'none'))
+                    options.template.css('display', 'block');
+            }
+
+            else if (!options.template)
+                options.template = methods['createTemplateFromElement'](element, options);
+
             var listeratorData = {
                 submitcontainer: submitcontainer,
                 layout: layout,
@@ -99,7 +135,7 @@
             };
 
             element.data("listeratorData", listeratorData);
-            element.data("listeratorOptions", opts);
+            element.data("listeratorOptions", options);
 
             submitcontainer.data('element', element);
         });
