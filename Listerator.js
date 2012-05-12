@@ -66,13 +66,11 @@
             data.lines--;
 
             //Iterate the submit elements, correcting the names
-
-            var i = 0;
-            data.submitcontainer.children().each(function (i, el) {
-                el.find('[name]').each(function () {
-                    //this.attr('name', this.attr('name'))
+            data.submitcontainer.children().each(function (i, submitline) {
+                $(submitline).find('[listerator-name]').each(function (j, el) {
+                    $el = $(el);
+                    $el.attr('name', $el.attr('listerator-name') + i);
                 });
-                console.log(i, el); 
             });
         },
 
@@ -99,7 +97,6 @@
         }
     };
 
-    /** the element should be a non-div */
     $.fn.Listerator = function (options) {
         var defaults = {
             eraseData: true
@@ -116,7 +113,7 @@
             element.before(wrapper);
             var elementdiv = $('<div />').append(element).appendTo(wrapper);
             var plusbutton = $('<button />').text("add").button().click(methods['addLine']).appendTo(element);
-            var submitcontainer = $('<div />').appendTo(wrapper);
+            var submitcontainer = $('<div />').attr('id', 'submitcontainer').appendTo(wrapper);
 
             if (options.template) {
                 options.template = $(options.template).clone();
