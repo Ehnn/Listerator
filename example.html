@@ -8,7 +8,11 @@
 			$('#beerterator').Listerator({
 				template: $('#listeratorTemplate'),
 				eraseData: true
+				//templatelayout: 'simple' / 'copy'
 			});
+
+			var additionalbeers = [{beername:'Guinness', beerprice:20}, {beername:'Goldstar', beerprice:18}]
+			$('#beerterator').Listerator('bind', additionalbeers)
 		});
 	</script>
 </head>
@@ -16,15 +20,15 @@
 	<form>
 	Beers!
 	<div id="beerterator">
-	    <span><Label for="beername">name</Label><input listerator-display=true id="beername" name="beername" type="text" /></span>
-	    <span><Label for="beerprice">price</Label><input listerator-display=true name="beerprice" id="beerprice" type="text" /></span>
+	    <span><Label for="beername">name</Label><input data-listerator-display="true" id="beername" name="beername" type="text" /></span>
+	    <span><Label for="beerprice">price</Label><input data-listerator-display="true" name="beerprice" id="beerprice" type="text" /></span>
 	</div>
 	<input type="submit" value="Submit"></button>
 	</form>
 
 	<div id="listeratorTemplate" style="display:none">
-		Name: <span style="width:100px;margin-right:30;margin-left:30;color:red" listerator-name="beername"></span>
-		Price: <span style="width:100px;margin-right:30;margin-left:30;color:green" listerator-name="beerprice"></span>
+		Name: <span style="width:100px;margin-right:30;margin-left:30;color:red" data-listerator-name="beername"></span>
+		Price: <span style="width:100px;margin-right:30;margin-left:30;color:green" data-listerator-name="beerprice"></span>
 	</div>
 </body>
 </html>
