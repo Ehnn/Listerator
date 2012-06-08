@@ -1,11 +1,14 @@
 ﻿(function ($) {
+    //to do:
+    //change lineCreate and dataCreate to jquery events
+    //uniform class and id listerator- names
     var methods = {
         createLine: function (submitdata) {
             var line = $('<span />');
             var displayelement, submitelement;
 
-            displayelement = methods.createDisplay(this.options.template, submitdata).appendTo(line);
-            submitelement = methods.createSubmit(submitdata, this.lines).appendTo(line);
+            displayelement = methods.createDisplay(this.options.template, submitdata).addClass('listerator-display').appendTo(line);
+            submitelement = methods.createSubmit(submitdata, this.lines).addClass('listerator-submit').appendTo(line);
 
             var removebutton = $('<button />').text("remove").addClass('listerator-button listerator-button-remove').button().click(methods['removeClick']).appendTo(displayelement);
 
@@ -28,6 +31,13 @@
         createDisplay: function (template, submitdata) {
             var displayelement = template.clone();
 
+            if (displayelement.attr('id')) displayelement.attr('id', null);
+            displayelement.find('[id]').each(function () { $(this).attr('id', null); });
+
+            if (displayelement.attr('name')) displayelement.attr('name', null);
+            displayelement.find('[name]').each(function () { $(this).attr('name', null); });
+
+
             displayelement.find('[data-listerator-name]').each(function (i, el) {
                 $el = $(el);
                 var name = $el.attr("data-listerator-name");
@@ -48,6 +58,19 @@
             }
         },
 
+        remove: function (lineNum) {
+            this.submitcontainer.children(':nth-child(' + lineNum + ')').remove();
+        },
+
+        getSubmitData: function (lineNum) {
+            return this.submitcontainer.children(':nth-child(' + lineNum + ')').data('listeratorSubmitData');
+        },
+
+        getLine: function (lineNum) {
+            return this.submitcontainer.children(':nth-child(' + lineNum + ')');
+        },
+
+        //decide if we even want this
         createTemplateFromElement: function (element, options) {
             var template;
             switch (options.templatelayout) {
@@ -64,12 +87,12 @@
                 $el = $(el);
 
                 switch (options.templatelayout) {
-                    //use the original layout, replace listerator-display with a span of its value                                           
+                    //use the original layout, replace listerator-display with a span of its value                                                     
                     case 'copy':
                         var span = $('<span />').attr('data-listerator-name', $el.attr('name'));
                         line.find('[name=' + $el.attr('name') + ']').replaceWith(span);
                         break;
-                    //put the display data into spans                                           
+                    //put the display data into spans                                                     
                     case 'simple':
                     default:
                         var span = $('<span />').css('margin', '10px');
@@ -91,7 +114,7 @@
             $(this).parent().remove();
             listerator.lines--;
 
-            //Iterate the submit elements, correcting the names
+            //iterate the submit elements, correcting the names
             listerator.submitcontainer.children().each(function (i, submitline) {
                 $(submitline).find('[listerator-name]').each(function (j, el) {
                     $el = $(el);
@@ -110,13 +133,19 @@
                 submitdata[el.attr('name')] = val;
             });
 
+            //change these things to jquery events of some sort
+            //if submitDataCreated returns false, don't add the line
+            if (listerator.options.submitDataCreated && !listerator.options.submitDataCreated(submitdata, listerator.element))
+                return false;
+
             var newline = methods['createLine'].call(listerator, submitdata);
+
+            //if lineCreated returns false, don't add the line
+            if (listerator.options.lineCreated && !listerator.options.lineCreated(newline, listerator.element))
+                return false;
 
             listerator.submitcontainer.append(newline);
             listerator.lines++;
-
-            if (listerator.options.lineCreated)
-                listerator.options.lineCreated(newline, listerator.element);
 
             //erase data
             if (listerator.options.eraseData)
@@ -132,14 +161,19 @@
         //perform a function
         if (typeof options == 'string') {
             var args = Array.prototype.slice.call(arguments, 1);
+
+            var firstval = null;
+
             this.each(function () {
                 var listerator = $.data(this, 'listerator');
                 if (listerator && $.isFunction(methods[options])) {
-                    methods[options].apply(listerator, args);
+                    var val = methods[options].apply(listerator, args);
+                    if (val && !firstval)
+                        firstval = val;
                 }
             });
 
-            return this;
+            return firstval || this;
         }
 
         var options = $.extend({}, $.fn.Listerator.defaultOptions, options);
@@ -149,7 +183,6 @@
             var element = $(this);
             var listerator = new Listerator(element, options);
             element.data('listerator', listerator);
-            console.log(element);
         });
 
         return this;
@@ -186,6 +219,16 @@
         this.element = element;
         this.lines = 0;
         this.options = options;
+
+        /*var listeratorData = {
+        submitcontainer: submitcontainer,
+        layout: layout,
+        element: element,
+        lines: 0
+        };*/
+
+        //element.data("listeratorData", listeratorData);
+        //element.data("listeratorOptions", options);
 
         submitcontainer.data('element', element);
 
